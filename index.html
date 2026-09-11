@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>からまつ苑 利用料金シミュレーター</title>
+<meta name="description" content="特別養護老人ホームからまつ苑の月額利用料金を概算するシミュレーターです。">
+<meta name="theme-color" content="#2f6f5e">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="icon" href="./icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="からまつ苑料金計算">
+<link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+<header class="app-header">
+  <p class="facility-name">からまつ苑</p>
+  <h1>利用料金シミュレーター</h1>
+  <p class="subtitle">令和8年8月1日料金表対応</p>
+</header>
+
+<main>
+  <p class="lead">利用条件を選択してください</p>
+
+  <!-- STEP 1: 要介護度 -->
+  <section class="step" id="step-careLevel">
+    <p class="step-title"><span class="step-number">1</span>要介護度<span class="step-status" id="status-careLevel"></span></p>
+    <div class="option-grid cols-2" data-field="careLevel">
+      <button class="option-btn" data-value="1">要介護1</button>
+      <button class="option-btn" data-value="2">要介護2</button>
+      <button class="option-btn" data-value="3">要介護3</button>
+      <button class="option-btn" data-value="4">要介護4</button>
+      <button class="option-btn" data-value="5">要介護5</button>
+    </div>
+  </section>
+
+  <!-- STEP 2: 介護保険負担割合 -->
+  <section class="step" id="step-copayRatio">
+    <p class="step-title"><span class="step-number">2</span>介護保険負担割合<span class="step-status" id="status-copayRatio"></span></p>
+    <div class="option-grid" data-field="copayRatio">
+      <button class="option-btn" data-value="0.1">1割</button>
+      <button class="option-btn" data-value="0.2">2割</button>
+      <button class="option-btn" data-value="0.3">3割</button>
+    </div>
+  </section>
+
+  <!-- STEP 3: 居室 -->
+  <section class="step" id="step-roomType">
+    <p class="step-title"><span class="step-number">3</span>居室<span class="step-status" id="status-roomType"></span></p>
+    <div class="option-grid cols-2" data-field="roomType">
+      <button class="option-btn" data-value="private">従来型個室</button>
+      <button class="option-btn" data-value="multi">多床室</button>
+    </div>
+  </section>
+
+  <!-- STEP 4: 利用日数 -->
+  <section class="step" id="step-days">
+    <p class="step-title"><span class="step-number">4</span>利用日数</p>
+    <div class="days-control">
+      <button type="button" id="days-minus" aria-label="1日減らす">−</button>
+      <div class="days-value"><span id="days-display">30</span><span class="unit">日</span></div>
+      <button type="button" id="days-plus" aria-label="1日増やす">＋</button>
+    </div>
+    <p class="field-hint">1〜31日の範囲で、月途中の入所・退所日数も設定できます。(初期値: 30日)</p>
+  </section>
+
+  <!-- STEP 5: 負担限度額段階 -->
+  <section class="step" id="step-limitStage">
+    <p class="step-title"><span class="step-number">5</span>負担限度額(食費・居住費)<span class="step-status" id="status-limitStage"></span></p>
+    <div class="option-grid cols-2" data-field="limitStage">
+      <button class="option-btn" data-value="1">第1段階</button>
+      <button class="option-btn" data-value="2">第2段階</button>
+      <button class="option-btn" data-value="3_1">第3段階①</button>
+      <button class="option-btn" data-value="3_2">第3段階②</button>
+      <button class="option-btn" data-value="4">第4段階</button>
+    </div>
+    <p class="field-hint">高額介護サービス費とは別の制度です。負担限度額認定証等でご確認ください。</p>
+  </section>
+
+  <!-- STEP 6: 高額介護サービス費 利用者負担段階 -->
+  <section class="step" id="step-highCostCareCategoryId">
+    <p class="step-title"><span class="step-number">6</span>高額介護サービス費 利用者負担段階<span class="step-status" id="status-highCostCareCategoryId"></span></p>
+    <div class="option-grid cols-1" data-field="highCostCareCategoryId" id="highCostCareOptions">
+      <!-- 選択肢はJSで大阪市データマスタから生成(先頭に「選択しない」を含む) -->
+    </div>
+    <p class="field-hint">わからない場合は「選択しない」を選んでください。その場合、高額介護サービス費による軽減は計算されません。</p>
+  </section>
+
+  <!-- 他の介護保険サービス -->
+  <section class="step" id="step-otherServices">
+    <p class="step-title"><span class="step-number">7</span>他の介護保険サービスの利用</p>
+    <p class="field-hint" style="margin:0 0 10px;">今月、からまつ苑以外の介護保険サービスを利用していますか?(高額介護サービス費は世帯単位で判定されるため。STEP6で「選択しない」を選んだ場合は入力しても計算に反映されません)</p>
+    <div class="toggle-row" data-field="hasOtherServices">
+      <button class="option-btn" data-value="no">いいえ</button>
+      <button class="option-btn" data-value="yes">はい</button>
+    </div>
+    <div id="otherServicesInput" hidden>
+      <div class="number-input-row">
+        <input type="number" id="otherServicesCopay" min="0" step="1" inputmode="numeric" value="0">
+        <span class="unit">円</span>
+      </div>
+      <p class="field-hint">他の介護保険サービスの自己負担額(1か月分)を入力してください。</p>
+    </div>
+  </section>
+
+  <!-- その他費用 -->
+  <section class="step" id="step-otherFees">
+    <p class="step-title"><span class="step-number">8</span>その他費用(任意)</p>
+    <div class="number-input-row">
+      <input type="number" id="otherFees" min="0" step="1" inputmode="numeric" value="0">
+      <span class="unit">円</span>
+    </div>
+    <p class="field-hint">理美容代・日用品費など、料金表の「その他費用」に該当する金額があれば入力してください。不明な場合は0円のままで構いません。</p>
+  </section>
+
+  <button type="button" class="calc-button" id="calc-button" disabled>計算する</button>
+
+  <!-- 結果画面 -->
+  <section class="result-panel" id="result-panel" hidden>
+    <div class="result-final">
+      <div class="label">月額利用料金(概算)</div>
+      <div class="amount"><span id="result-finalTotal">0</span><span class="yen">円</span></div>
+    </div>
+
+    <div class="result-section">
+      <h3>介護サービス</h3>
+      <div class="result-row"><span class="name">基本サービス</span><span class="value" id="result-baseUnit"></span></div>
+      <div class="result-row"><span class="name">各種加算(通常加算+月額加算)</span><span class="value" id="result-additions"></span></div>
+      <div class="result-row"><span class="name">処遇改善加算</span><span class="value" id="result-treatment"></span></div>
+      <div class="result-row total highlight"><span class="name">介護サービス自己負担(適用前)</span><span class="value" id="result-careCopay"></span></div>
+    </div>
+
+    <div class="result-section">
+      <h3>高額介護サービス費</h3>
+      <div class="result-row"><span class="name">適用前(からまつ苑+他サービス)</span><span class="value" id="result-hcBefore"></span></div>
+      <div class="result-row"><span class="name">上限額(<span id="result-hcCategoryLabel"></span>)</span><span class="value" id="result-hcLimit"></span></div>
+      <div class="arrow-row">↓</div>
+      <div class="result-row highlight"><span class="name">適用後(世帯合計)</span><span class="value" id="result-hcAfter"></span></div>
+      <div class="result-row"><span class="name">高額介護サービス費相当額(軽減額)</span><span class="value" id="result-hcReduction"></span></div>
+      <div class="reduction-banner" id="reduction-banner" hidden></div>
+    </div>
+
+    <div class="result-section">
+      <h3>食費・居住費・その他</h3>
+      <div class="result-row"><span class="name">食費</span><span class="value" id="result-food"></span></div>
+      <div class="result-row"><span class="name">居住費</span><span class="value" id="result-room"></span></div>
+      <div class="result-row"><span class="name">その他費用</span><span class="value" id="result-otherFees"></span></div>
+    </div>
+
+    <div class="caution-box">
+      ※この結果は概算です。実際の請求額とは、算定された加算、利用日数、端数処理、制度適用状況、その他費用等により異なる場合があります。<br><br>
+      ※高額介護サービス費の適用には制度上の要件があります。このシミュレーションは実際の支給額を確定するものではありません。
+    </div>
+
+    <button type="button" class="reset-button" id="reset-button">最初からやり直す</button>
+  </section>
+</main>
+
+<footer class="app-footer">からまつ苑 利用料金シミュレーター
+
+料金表:
+令和8年8月1日〜
+
+制度情報:
+大阪市 高額介護サービス費等
+
+※本アプリは概算シミュレーションです。
+実際の請求額を保証するものではありません。</footer>
+
+<script type="module" src="./js/app.js"></script>
+</body>
+</html>

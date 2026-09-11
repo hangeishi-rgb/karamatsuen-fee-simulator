@@ -1,0 +1,50 @@
+{
+  "effectiveFrom": "2026-08-01",
+  "source": {
+    "title": "大阪市:介護保険高額介護（介護予防）サービス費（相当事業費）支給申請書（受領委任払承認及び支給申請書含む）",
+    "url": "https://www.city.osaka.lg.jp/fukushi/page/0000311519.html",
+    "retrievedOn": "2026-09-11",
+    "pageUpdatedOn": "2026-08-25"
+  },
+  "note": "上限額は据え置きが続いており(令和3年8月改定以降変更なし)、2026-09-11時点の大阪市公式ページの記載内容と一致することを確認済み。個人単位の上限額(15,000円)が併記されている区分についても、本アプリV.1では世帯単位の上限額のみを適用し、個人単位の上限額は参考情報として表示するに留める(ユーザー了承済み)。",
+  "categories": [
+    {
+      "id": "over690",
+      "label": "課税所得690万円以上(年収約1,160万円以上)",
+      "householdLimit": 140100,
+      "individualLimit": null
+    },
+    {
+      "id": "380to690",
+      "label": "課税所得380万円以上690万円未満(年収約770万円以上1,160万円未満)",
+      "householdLimit": 93000,
+      "individualLimit": null
+    },
+    {
+      "id": "under380",
+      "label": "市町村民税課税~課税所得380万円未満(年収約770万円未満)",
+      "householdLimit": 44400,
+      "individualLimit": null
+    },
+    {
+      "id": "nonTaxedHousehold",
+      "label": "市町村民税非課税世帯(下記以外)",
+      "householdLimit": 24600,
+      "individualLimit": null
+    },
+    {
+      "id": "nonTaxedLowIncome",
+      "label": "非課税世帯・一定所得以下(公的年金等収入+合計所得金額80万円以下、または老齢福祉年金受給者)",
+      "householdLimit": 24600,
+      "individualLimit": 15000,
+      "individualLimitNote": "参考情報として表示のみ。本アプリの計算では世帯単位の上限額(24,600円)を適用する。"
+    },
+    {
+      "id": "livelihoodProtection",
+      "label": "生活保護受給等",
+      "householdLimit": 15000,
+      "individualLimit": null,
+      "note": "このカテゴリのみ上限額そのものが個人単位の金額(15,000円)。計算上はこの金額を上限額として扱う。"
+    }
+  ]
+}

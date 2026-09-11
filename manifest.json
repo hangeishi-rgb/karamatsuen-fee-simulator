@@ -1,0 +1,26 @@
+{
+  "name": "からまつ苑 利用料金シミュレーター",
+  "short_name": "からまつ苑料金計算",
+  "description": "特別養護老人ホームからまつ苑の月額利用料金を概算するシミュレーターです。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f7f6",
+  "theme_color": "#2f6f5e",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
