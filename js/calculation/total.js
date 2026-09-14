@@ -45,7 +45,15 @@ export function calculateTotal(feeMaster, highCostCareMaster, input) {
     : null;
 
   const finalCareServiceCopay = highCostCare ? highCostCare.karamatsuCopayAfterReduction : careService.copay;
-  const finalTotal = finalCareServiceCopay + food.totalAmount + room.totalAmount + (otherFees || 0);
+
+  // 生活保護受給等が選択されている場合、負担限度額(第1段階)相当の食費・居住費も
+  // 生活保護の介護扶助により本人負担は生じないものとして扱う(料金表・大阪市資料の範囲外の一般的な制度理解のため、
+  // 実装前にユーザーへ確認済み)。マスタ側の foodAndRoomCoveredByWelfare フラグで判定する。
+  const welfareCoversFoodAndRoom = Boolean(highCostCare?.category?.foodAndRoomCoveredByWelfare);
+  const finalFoodAmount = welfareCoversFoodAndRoom ? 0 : food.totalAmount;
+  const finalRoomAmount = welfareCoversFoodAndRoom ? 0 : room.totalAmount;
+
+  const finalTotal = finalCareServiceCopay + finalFoodAmount + finalRoomAmount + (otherFees || 0);
 
   return {
     input,
@@ -54,6 +62,9 @@ export function calculateTotal(feeMaster, highCostCareMaster, input) {
     room,
     highCostCare,
     finalCareServiceCopay,
+    welfareCoversFoodAndRoom,
+    finalFoodAmount,
+    finalRoomAmount,
     otherFees: otherFees || 0,
     finalTotal,
   };

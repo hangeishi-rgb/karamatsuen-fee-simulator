@@ -2,7 +2,7 @@
 // オフラインでも料金計算ができるよう、アプリ本体と料金マスタJSONをキャッシュする。
 // 料金改定時は CACHE_NAME のバージョンを上げることで、古いキャッシュを破棄して更新する。
 
-const CACHE_NAME = "karamatsuen-fee-simulator-v5";
+const CACHE_NAME = "karamatsuen-fee-simulator-v6";
 
 const APP_SHELL_FILES = [
   "./",

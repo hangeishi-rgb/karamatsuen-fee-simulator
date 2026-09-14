@@ -65,6 +65,14 @@ function buildHighCostCareOptions() {
     container.appendChild(btn);
   }
   wireOptionGroup(container, "highCostCareCategoryId");
+
+  // 生活保護受給等は制度上、負担限度額「第1段階」とセットになるため自動的に連動させる。
+  container.addEventListener("click", (e) => {
+    const btn = e.target.closest(".option-btn");
+    if (!btn || btn.dataset.value !== "livelihoodProtection") return;
+    const limitStageContainer = document.querySelector('[data-field="limitStage"]');
+    selectValue("limitStage", "1", limitStageContainer);
+  });
 }
 
 function wireOptionGroup(container, field) {
@@ -156,7 +164,7 @@ function renderConditionSummary(input) {
 }
 
 function renderResult(result) {
-  const { careService, food, room, highCostCare, finalCareServiceCopay, finalTotal } = result;
+  const { careService, food, room, highCostCare, finalCareServiceCopay, finalTotal, welfareCoversFoodAndRoom, finalFoodAmount, finalRoomAmount } = result;
 
   renderConditionSummary(result.input);
   document.getElementById("result-finalTotal").textContent = formatYen(finalTotal);
@@ -193,8 +201,18 @@ function renderResult(result) {
     banner.textContent = "高額介護サービス費の区分が選択されていないため、軽減額は計算していません。";
   }
 
-  document.getElementById("result-food").textContent = `${formatYen(food.totalAmount)}円`;
-  document.getElementById("result-room").textContent = `${formatYen(room.totalAmount)}円`;
+  document.getElementById("result-food").textContent = `${formatYen(finalFoodAmount)}円`;
+  document.getElementById("result-room").textContent = `${formatYen(finalRoomAmount)}円`;
+
+  const welfareNote = document.getElementById("welfare-note");
+  if (welfareCoversFoodAndRoom) {
+    welfareNote.hidden = false;
+    welfareNote.textContent = `※生活保護の介護扶助により、食費・居住費のご本人負担は生じないものとして0円で表示しています(参考: 負担限度額第1段階相当額 ${formatYen(
+      food.totalAmount + room.totalAmount
+    )}円は介護扶助等で賄われます)。`;
+  } else {
+    welfareNote.hidden = true;
+  }
 
   document.getElementById("result-panel").hidden = false;
   document.getElementById("result-panel").scrollIntoView({ behavior: "smooth", block: "start" });

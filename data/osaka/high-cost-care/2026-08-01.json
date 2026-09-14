@@ -44,7 +44,9 @@
       "label": "生活保護受給等",
       "householdLimit": 15000,
       "individualLimit": null,
-      "note": "このカテゴリのみ上限額そのものが個人単位の金額(15,000円)。計算上はこの金額を上限額として扱う。"
+      "note": "このカテゴリのみ上限額そのものが個人単位の金額(15,000円)。計算上はこの金額を上限額として扱う。",
+      "foodAndRoomCoveredByWelfare": true,
+      "foodAndRoomCoveredByWelfareNote": "生活保護の介護扶助により、負担限度額(第1段階)相当の食費・居住費も本人負担は生じないものとして扱う。"
     }
   ]
 }

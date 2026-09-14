@@ -334,6 +334,14 @@ main {
   font-size: 17px;
 }
 
+.remark-note {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin: 8px 0 0;
+  padding-top: 8px;
+  border-top: 1px dashed var(--color-border);
+}
+
 .result-row.total {
   border-top: 1px solid var(--color-border);
   margin-top: 4px;
@@ -416,11 +424,18 @@ footer.app-footer {
 }
 
 /* 印刷・PDF保存用のレイアウト調整。
-   結果画面(result-panel)以外はすべて非表示にし、白背景・黒文字の書類らしい見た目にする。 */
+   結果画面(result-panel)以外はすべて非表示にし、白背景・黒文字の書類らしい見た目にする。
+   A4 1枚に収まるよう、余白・行間・文字サイズを画面表示よりも詰めている。 */
 @media print {
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+
   html,
   body {
     background: #fff;
+    font-size: 12px;
   }
 
   .app-header,
@@ -446,48 +461,106 @@ footer.app-footer {
   .print-only-header {
     display: block;
     text-align: center;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
     border-bottom: 2px solid #000;
   }
 
   .print-facility-name {
-    font-size: 18px;
+    font-size: 15px;
     font-weight: 700;
-    margin: 0 0 4px;
+    margin: 0 0 2px;
   }
 
   .print-date {
-    font-size: 12px;
+    font-size: 10px;
     color: #333;
     margin: 0;
   }
 
+  #condition-summary.result-section {
+    margin-bottom: 6px;
+  }
+
+  #condition-summary .result-row {
+    padding: 2px 0;
+    font-size: 11px;
+  }
+
   .result-final {
+    padding: 4px 0 8px;
+    margin-bottom: 6px;
     border-bottom: 1px solid #999;
   }
 
+  .result-final .label {
+    font-size: 11px;
+  }
+
   .result-final .amount {
+    font-size: 26px;
     color: #000;
   }
 
+  .result-final .amount .yen {
+    font-size: 16px;
+  }
+
+  .result-section {
+    margin-bottom: 6px;
+  }
+
   .result-section h3 {
+    font-size: 12px;
+    margin: 0 0 3px;
     color: #000;
     border-left-color: #000;
+  }
+
+  .result-row {
+    padding: 2px 0;
+    font-size: 11px;
+  }
+
+  .result-row.total {
+    padding-top: 4px;
   }
 
   .result-row.highlight .value,
   .result-row .value {
     color: #000;
+    font-size: 12px;
+  }
+
+  .arrow-row {
+    padding: 0;
+    font-size: 11px;
   }
 
   .reduction-banner {
     background: #fff;
     border: 1px solid #999;
+    padding: 4px 8px;
+    margin-top: 4px;
+    font-size: 10px;
+  }
+
+  .remark-note {
+    font-size: 9px;
+    margin-top: 4px;
+    padding-top: 4px;
   }
 
   .caution-box {
     background: #fff;
     border: 1px solid #999;
+    padding: 6px 8px;
+    font-size: 9px;
+    line-height: 1.4;
+    margin-bottom: 4px;
+  }
+
+  .caution-box br + br {
+    display: none;
   }
 }

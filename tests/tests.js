@@ -141,6 +141,31 @@ async function run() {
     assertEqual(result.finalTotal, 15329 + 12300, "calculateTotal unselected finalTotal unchanged");
   }
 
+  // calculateTotal: 生活保護受給等 選択時は食費・居住費の本人負担が0円になること
+  {
+    const input = {
+      careLevel: "3",
+      copayRatio: 0.1,
+      roomType: "private",
+      days: 30,
+      limitStage: "1",
+      highCostCareCategoryId: "livelihoodProtection",
+      otherServicesCopay: 0,
+      otherFees: 0,
+    };
+    const result = calculateTotal(feeMaster, highCostCareMaster, input);
+    // careService.copay = 50895(料金表30日例) - 20400(stage1 private food+room) = 30495
+    assertEqual(result.careService.copay, 30495, "livelihoodProtection careService.copay");
+    // highCostCare limit=15000, target=30495 -> reduction適用でfinalCareServiceCopay=15000
+    assertEqual(result.finalCareServiceCopay, 15000, "livelihoodProtection finalCareServiceCopay capped at 15000");
+    assertEqual(result.welfareCoversFoodAndRoom, true, "livelihoodProtection welfareCoversFoodAndRoom flag");
+    assertEqual(result.finalFoodAmount, 0, "livelihoodProtection finalFoodAmount is 0");
+    assertEqual(result.finalRoomAmount, 0, "livelihoodProtection finalRoomAmount is 0");
+    assertEqual(result.food.totalAmount, 9000, "livelihoodProtection reference food.totalAmount unchanged");
+    assertEqual(result.room.totalAmount, 11400, "livelihoodProtection reference room.totalAmount unchanged");
+    assertEqual(result.finalTotal, 15000, "livelihoodProtection finalTotal excludes food/room");
+  }
+
   // selectApplicableVersion: 料金改定対応の日付選択ロジック
   {
     const versions = ["2026-08-01", "2027-04-01", "2025-01-01"];
