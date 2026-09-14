@@ -10,9 +10,6 @@ const state = {
   days: 30,
   limitStage: null,
   highCostCareCategoryId: null,
-  hasOtherServices: "no",
-  otherServicesCopay: 0,
-  otherFees: 0,
 };
 
 let feeMaster = null;
@@ -87,45 +84,6 @@ function setupOptionGroups() {
   selectValue("copayRatio", "0.1", copayContainer);
 }
 
-function setupOtherServicesToggle() {
-  const container = document.querySelector('[data-field="hasOtherServices"]');
-  const inputWrap = document.getElementById("otherServicesInput");
-  const input = document.getElementById("otherServicesCopay");
-
-  container.addEventListener("click", (e) => {
-    const btn = e.target.closest(".option-btn");
-    if (!btn) return;
-    const value = btn.dataset.value;
-    state.hasOtherServices = value;
-    container.querySelectorAll(".option-btn").forEach((b) => {
-      b.setAttribute("aria-pressed", String(b.dataset.value === value));
-    });
-    if (value === "yes") {
-      inputWrap.hidden = false;
-    } else {
-      inputWrap.hidden = true;
-      input.value = "0";
-      state.otherServicesCopay = 0;
-    }
-  });
-
-  // default = いいえ
-  container.querySelector('[data-value="no"]').setAttribute("aria-pressed", "true");
-
-  input.addEventListener("input", () => {
-    const n = parseInt(input.value, 10);
-    state.otherServicesCopay = Number.isFinite(n) && n >= 0 ? n : 0;
-  });
-}
-
-function setupOtherFeesInput() {
-  const input = document.getElementById("otherFees");
-  input.addEventListener("input", () => {
-    const n = parseInt(input.value, 10);
-    state.otherFees = Number.isFinite(n) && n >= 0 ? n : 0;
-  });
-}
-
 function setupDaysControl() {
   const display = document.getElementById("days-display");
   const minusBtn = document.getElementById("days-minus");
@@ -155,9 +113,35 @@ function updateCalcButtonState() {
   calcButton.disabled = !allFilled;
 }
 
-function renderResult(result) {
-  const { careService, food, room, highCostCare, finalCareServiceCopay, otherFees, finalTotal } = result;
+const COPAY_RATIO_LABELS = { "0.1": "1割", "0.2": "2割", "0.3": "3割" };
 
+function renderConditionSummary(input) {
+  const careLevelLabel = feeMaster.careLevels[String(input.careLevel)].label;
+  const roomTypeLabel = feeMaster.foodAndRoom.roomTypeLabels[input.roomType];
+  const stageLabel = feeMaster.foodAndRoom.stageLabels[input.limitStage];
+  const copayRatioLabel = COPAY_RATIO_LABELS[String(input.copayRatio)] || `${input.copayRatio * 100}割`;
+  const highCostCareLabel = input.highCostCareCategoryId
+    ? highCostCareMaster.categories.find((c) => c.id === input.highCostCareCategoryId)?.label
+    : "選択しない(わからない)";
+
+  document.getElementById("cond-careLevel").textContent = careLevelLabel;
+  document.getElementById("cond-copayRatio").textContent = copayRatioLabel;
+  document.getElementById("cond-roomType").textContent = roomTypeLabel;
+  document.getElementById("cond-days").textContent = `${input.days}日`;
+  document.getElementById("cond-limitStage").textContent = stageLabel;
+  document.getElementById("cond-highCostCare").textContent = highCostCareLabel;
+
+  document.getElementById("print-date").textContent = `作成日: ${new Intl.DateTimeFormat("ja-JP", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(new Date())}`;
+}
+
+function renderResult(result) {
+  const { careService, food, room, highCostCare, finalCareServiceCopay, finalTotal } = result;
+
+  renderConditionSummary(result.input);
   document.getElementById("result-finalTotal").textContent = formatYen(finalTotal);
 
   document.getElementById("result-baseUnit").textContent = `${formatYen(careService.baseUnit)} 単位/日`;
@@ -194,7 +178,6 @@ function renderResult(result) {
 
   document.getElementById("result-food").textContent = `${formatYen(food.totalAmount)}円`;
   document.getElementById("result-room").textContent = `${formatYen(room.totalAmount)}円`;
-  document.getElementById("result-otherFees").textContent = `${formatYen(otherFees)}円`;
 
   document.getElementById("result-panel").hidden = false;
   document.getElementById("result-panel").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -207,17 +190,10 @@ function resetAll() {
   state.days = 30;
   state.limitStage = null;
   state.highCostCareCategoryId = null;
-  state.hasOtherServices = "no";
-  state.otherServicesCopay = 0;
-  state.otherFees = 0;
 
   document.querySelectorAll(".option-btn").forEach((b) => b.setAttribute("aria-pressed", "false"));
   document.querySelectorAll(".step-status").forEach((s) => (s.textContent = ""));
   document.querySelector('[data-field="copayRatio"] [data-value="0.1"]').setAttribute("aria-pressed", "true");
-  document.querySelector('[data-field="hasOtherServices"] [data-value="no"]').setAttribute("aria-pressed", "true");
-  document.getElementById("otherServicesInput").hidden = true;
-  document.getElementById("otherServicesCopay").value = "0";
-  document.getElementById("otherFees").value = "0";
   document.getElementById("days-display").textContent = "30";
 
   document.getElementById("result-panel").hidden = true;
@@ -229,8 +205,6 @@ async function init() {
   await loadData();
   buildHighCostCareOptions();
   setupOptionGroups();
-  setupOtherServicesToggle();
-  setupOtherFeesInput();
   setupDaysControl();
   updateCalcButtonState();
 
@@ -242,14 +216,17 @@ async function init() {
       days: state.days,
       limitStage: state.limitStage,
       highCostCareCategoryId: state.highCostCareCategoryId,
-      otherServicesCopay: state.hasOtherServices === "yes" ? state.otherServicesCopay : 0,
-      otherFees: state.otherFees,
+      otherServicesCopay: 0,
+      otherFees: 0,
     };
     const result = calculateTotal(feeMaster, highCostCareMaster, input);
     renderResult(result);
   });
 
   document.getElementById("reset-button").addEventListener("click", resetAll);
+  document.getElementById("print-button").addEventListener("click", () => {
+    window.print();
+  });
 
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./service-worker.js").catch(() => {

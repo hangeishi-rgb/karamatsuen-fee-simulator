@@ -89,37 +89,25 @@
     <p class="field-hint">わからない場合は「選択しない」を選んでください。その場合、高額介護サービス費による軽減は計算されません。</p>
   </section>
 
-  <!-- 他の介護保険サービス -->
-  <section class="step" id="step-otherServices">
-    <p class="step-title"><span class="step-number">7</span>他の介護保険サービスの利用</p>
-    <p class="field-hint" style="margin:0 0 10px;">今月、からまつ苑以外の介護保険サービスを利用していますか?(高額介護サービス費は世帯単位で判定されるため。STEP6で「選択しない」を選んだ場合は入力しても計算に反映されません)</p>
-    <div class="toggle-row" data-field="hasOtherServices">
-      <button class="option-btn" data-value="no">いいえ</button>
-      <button class="option-btn" data-value="yes">はい</button>
-    </div>
-    <div id="otherServicesInput" hidden>
-      <div class="number-input-row">
-        <input type="number" id="otherServicesCopay" min="0" step="1" inputmode="numeric" value="0">
-        <span class="unit">円</span>
-      </div>
-      <p class="field-hint">他の介護保険サービスの自己負担額(1か月分)を入力してください。</p>
-    </div>
-  </section>
-
-  <!-- その他費用 -->
-  <section class="step" id="step-otherFees">
-    <p class="step-title"><span class="step-number">8</span>その他費用(任意)</p>
-    <div class="number-input-row">
-      <input type="number" id="otherFees" min="0" step="1" inputmode="numeric" value="0">
-      <span class="unit">円</span>
-    </div>
-    <p class="field-hint">理美容代・日用品費など、料金表の「その他費用」に該当する金額があれば入力してください。不明な場合は0円のままで構いません。</p>
-  </section>
-
   <button type="button" class="calc-button" id="calc-button" disabled>計算する</button>
 
   <!-- 結果画面 -->
   <section class="result-panel" id="result-panel" hidden>
+    <div class="print-only-header">
+      <p class="print-facility-name">からまつ苑 利用料金シミュレーター(概算)</p>
+      <p class="print-date" id="print-date"></p>
+    </div>
+
+    <div class="result-section" id="condition-summary">
+      <h3>ご利用条件</h3>
+      <div class="result-row"><span class="name">要介護度</span><span class="value" id="cond-careLevel"></span></div>
+      <div class="result-row"><span class="name">介護保険負担割合</span><span class="value" id="cond-copayRatio"></span></div>
+      <div class="result-row"><span class="name">居室</span><span class="value" id="cond-roomType"></span></div>
+      <div class="result-row"><span class="name">利用日数</span><span class="value" id="cond-days"></span></div>
+      <div class="result-row"><span class="name">負担限度額</span><span class="value" id="cond-limitStage"></span></div>
+      <div class="result-row"><span class="name">高額介護サービス費区分</span><span class="value" id="cond-highCostCare"></span></div>
+    </div>
+
     <div class="result-final">
       <div class="label">月額利用料金(概算)</div>
       <div class="amount"><span id="result-finalTotal">0</span><span class="yen">円</span></div>
@@ -135,19 +123,18 @@
 
     <div class="result-section">
       <h3>高額介護サービス費</h3>
-      <div class="result-row"><span class="name">適用前(からまつ苑+他サービス)</span><span class="value" id="result-hcBefore"></span></div>
+      <div class="result-row"><span class="name">適用前(介護サービス自己負担)</span><span class="value" id="result-hcBefore"></span></div>
       <div class="result-row"><span class="name">上限額(<span id="result-hcCategoryLabel"></span>)</span><span class="value" id="result-hcLimit"></span></div>
       <div class="arrow-row">↓</div>
-      <div class="result-row highlight"><span class="name">適用後(世帯合計)</span><span class="value" id="result-hcAfter"></span></div>
+      <div class="result-row highlight"><span class="name">適用後</span><span class="value" id="result-hcAfter"></span></div>
       <div class="result-row"><span class="name">高額介護サービス費相当額(軽減額)</span><span class="value" id="result-hcReduction"></span></div>
       <div class="reduction-banner" id="reduction-banner" hidden></div>
     </div>
 
     <div class="result-section">
-      <h3>食費・居住費・その他</h3>
+      <h3>食費・居住費</h3>
       <div class="result-row"><span class="name">食費</span><span class="value" id="result-food"></span></div>
       <div class="result-row"><span class="name">居住費</span><span class="value" id="result-room"></span></div>
-      <div class="result-row"><span class="name">その他費用</span><span class="value" id="result-otherFees"></span></div>
     </div>
 
     <div class="caution-box">
@@ -155,7 +142,10 @@
       ※高額介護サービス費の適用には制度上の要件があります。このシミュレーションは実際の支給額を確定するものではありません。
     </div>
 
-    <button type="button" class="reset-button" id="reset-button">最初からやり直す</button>
+    <div class="result-actions">
+      <button type="button" class="print-button" id="print-button">印刷する(PDFで保存)</button>
+      <button type="button" class="reset-button" id="reset-button">最初からやり直す</button>
+    </div>
   </section>
 </main>
 

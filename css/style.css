@@ -372,6 +372,14 @@ main {
   margin-bottom: 16px;
 }
 
+.result-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.print-button,
 .reset-button {
   display: block;
   width: 100%;
@@ -383,7 +391,15 @@ main {
   background: #fff;
   color: var(--color-primary);
   cursor: pointer;
-  margin-bottom: 16px;
+}
+
+.print-button {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.print-only-header {
+  display: none;
 }
 
 footer.app-footer {
@@ -397,4 +413,81 @@ footer.app-footer {
 
 [hidden] {
   display: none !important;
+}
+
+/* 印刷・PDF保存用のレイアウト調整。
+   結果画面(result-panel)以外はすべて非表示にし、白背景・黒文字の書類らしい見た目にする。 */
+@media print {
+  html,
+  body {
+    background: #fff;
+  }
+
+  .app-header,
+  .lead,
+  .step,
+  .calc-button,
+  .print-button,
+  .reset-button,
+  footer.app-footer {
+    display: none !important;
+  }
+
+  main {
+    max-width: none;
+    padding: 0;
+  }
+
+  .result-panel {
+    border: none;
+    padding: 0;
+  }
+
+  .print-only-header {
+    display: block;
+    text-align: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #000;
+  }
+
+  .print-facility-name {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+
+  .print-date {
+    font-size: 12px;
+    color: #333;
+    margin: 0;
+  }
+
+  .result-final {
+    border-bottom: 1px solid #999;
+  }
+
+  .result-final .amount {
+    color: #000;
+  }
+
+  .result-section h3 {
+    color: #000;
+    border-left-color: #000;
+  }
+
+  .result-row.highlight .value,
+  .result-row .value {
+    color: #000;
+  }
+
+  .reduction-banner {
+    background: #fff;
+    border: 1px solid #999;
+  }
+
+  .caution-box {
+    background: #fff;
+    border: 1px solid #999;
+  }
 }
