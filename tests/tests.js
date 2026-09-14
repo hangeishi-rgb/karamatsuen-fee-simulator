@@ -3,6 +3,7 @@ import { calculateFood } from "../js/calculation/food.js";
 import { calculateRoom } from "../js/calculation/room.js";
 import { calculateHighCostCare } from "../js/calculation/highCostCare.js";
 import { calculateTotal } from "../js/calculation/total.js";
+import { selectApplicableVersion } from "../js/calculation/versionSelect.js";
 
 /**
  * ブラウザ上で動く簡易テストランナー(Node.js不使用環境のため)。
@@ -138,6 +139,16 @@ async function run() {
     assertEqual(result.highCostCare, null, "calculateTotal unselected highCostCare is null");
     assertEqual(result.finalCareServiceCopay, result.careService.copay, "calculateTotal unselected finalCareServiceCopay unchanged");
     assertEqual(result.finalTotal, 15329 + 12300, "calculateTotal unselected finalTotal unchanged");
+  }
+
+  // selectApplicableVersion: 料金改定対応の日付選択ロジック
+  {
+    const versions = ["2026-08-01", "2027-04-01", "2025-01-01"];
+    assertEqual(selectApplicableVersion(versions, "2026-09-14"), "2026-08-01", "selectApplicableVersion current date");
+    assertEqual(selectApplicableVersion(versions, "2027-04-01"), "2027-04-01", "selectApplicableVersion exact effective date");
+    assertEqual(selectApplicableVersion(versions, "2027-12-31"), "2027-04-01", "selectApplicableVersion after latest revision");
+    assertEqual(selectApplicableVersion(versions, "2024-01-01"), "2025-01-01", "selectApplicableVersion before earliest (fallback to earliest)");
+    assertEqual(selectApplicableVersion(["2026-08-01"], "2026-08-01"), "2026-08-01", "selectApplicableVersion single version");
   }
 
   const summary = `TOTAL: ${passCount + failCount}  PASS: ${passCount}  FAIL: ${failCount}`;

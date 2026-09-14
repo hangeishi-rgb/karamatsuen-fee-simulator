@@ -56,17 +56,27 @@ js/calculation/food.js                食費の計算
 js/calculation/room.js                居住費の計算
 js/calculation/highCostCare.js        高額介護サービス費の計算
 js/calculation/total.js               全体を合算し calculationResult を作る
-data/karamatsu/2026-08-01.json        からまつ苑 料金マスタ(★料金改定時はここ)
-data/osaka/high-cost-care/2026-08-01.json  大阪市 高額介護サービス費マスタ(★制度改定時はここ)
+js/calculation/versionSelect.js       今日時点で有効な料金マスタのバージョンを自動選択
+data/karamatsu/versions.json          からまつ苑 料金マスタの適用日一覧(★改定時はここに追加)
+data/karamatsu/2026-08-01.json        からまつ苑 料金マスタ本体(★改定時は新しい日付のファイルを追加)
+data/osaka/high-cost-care/versions.json    高額介護サービス費マスタの適用日一覧(★改定時はここに追加)
+data/osaka/high-cost-care/2026-08-01.json  大阪市 高額介護サービス費マスタ本体(★改定時は新しい日付のファイルを追加)
 tests/tests.js, tests/test.html       計算ロジックのブラウザ内テスト
 icons/                                 PWAアイコン
 ```
 
 ### 料金改定・制度改定時の修正方法
 
-- **からまつ苑の料金改定**(基本単位・加算単位・処遇改善加算率・地域区分単価・食費居住費が変わった場合): `data/karamatsu/` に新しい日付のJSON(例: `2027-04-01.json`)を追加し、`js/app.js` の `loadData()` が読み込むファイルパスを新しいものに切り替えてください。既存ファイルは変更せず残すことで、過去分の検証や切り戻しがしやすくなります。
-- **大阪市 高額介護サービス費の上限額改定**: 同様に `data/osaka/high-cost-care/` に新しい日付のJSONを追加し、参照パスを切り替えてください。
+本アプリは、料金改定のたびにプログラムのコードを直す必要がないように設計しています。新しい日付のJSONを追加するだけで、アプリが自動的に「今日時点で有効な最新の料金」を選んで使うようになります。
+
+- **からまつ苑の料金改定**(基本単位・加算単位・処遇改善加算率・地域区分単価・食費居住費が変わった場合):
+  1. `data/karamatsu/` に新しい日付のJSON(例: `2027-04-01.json`)を追加する(既存ファイルは変更せず残す。過去分の検証や切り戻しがしやすくなるため)。
+  2. `data/karamatsu/versions.json` の `versions` 配列に、その新しい日付("2027-04-01")を追加する。
+  3. これだけで、`js/app.js` や計算ロジックのコードは一切変更せずに反映されます(`js/calculation/versionSelect.js` が、実行時点の日付に対して有効な最新バージョンを自動選択します)。
+- **大阪市 高額介護サービス費の上限額改定**: 同様に `data/osaka/high-cost-care/` に新しい日付のJSONを追加し、`data/osaka/high-cost-care/versions.json` にその日付を追加してください。
 - 料金・単価を計算ロジック(`js/calculation/*.js`)に直接書き込むことは絶対にしないでください。すべてJSONマスタ側で管理する設計です。
+- ファイルを追加・変更したら、`service-worker.js` の `CACHE_NAME` のバージョン文字列を上げてください(上げないと、既にホーム画面に追加した利用者の端末に更新が反映されないことがあります)。新しいJSONファイルは `APP_SHELL_FILES` にも追加しておくと、オフライン時の初回読み込みにも対応できます。
+- 変更後は `tests/test.html` で全件パスすることを確認してから、`git add` → `git commit` → `git push` でGitHub Pagesに反映してください。
 
 ## 5. 計算式(からまつ苑公式料金表に明記された算定方法)
 

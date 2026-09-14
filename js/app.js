@@ -1,4 +1,5 @@
 import { calculateTotal } from "./calculation/total.js";
+import { selectApplicableVersion, formatDateYmd } from "./calculation/versionSelect.js";
 
 // 高額介護サービス費の区分(highCostCareCategoryId)は任意選択のため必須項目には含めない。
 const REQUIRED_FIELDS = ["careLevel", "copayRatio", "roomType", "limitStage"];
@@ -15,10 +16,26 @@ const state = {
 let feeMaster = null;
 let highCostCareMaster = null;
 
+async function loadVersions(path) {
+  const res = await fetch(path);
+  const json = await res.json();
+  return json.versions;
+}
+
 async function loadData() {
+  const today = formatDateYmd();
+
+  const [feeVersions, hcVersions] = await Promise.all([
+    loadVersions("./data/karamatsu/versions.json"),
+    loadVersions("./data/osaka/high-cost-care/versions.json"),
+  ]);
+
+  const feeVersion = selectApplicableVersion(feeVersions, today);
+  const hcVersion = selectApplicableVersion(hcVersions, today);
+
   const [feeRes, hcRes] = await Promise.all([
-    fetch("./data/karamatsu/2026-08-01.json"),
-    fetch("./data/osaka/high-cost-care/2026-08-01.json"),
+    fetch(`./data/karamatsu/${feeVersion}.json`),
+    fetch(`./data/osaka/high-cost-care/${hcVersion}.json`),
   ]);
   feeMaster = await feeRes.json();
   highCostCareMaster = await hcRes.json();
