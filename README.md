@@ -4,6 +4,9 @@
 
 **このアプリは概算シミュレーションを行うものであり、実際の請求額を確定するものではありません。**
 
+**公開URL: https://hangeishi-rgb.github.io/karamatsuen-fee-simulator/**
+(iPhoneのSafariでこのURLを開き、共有ボタン→「ホーム画面に追加」でアプリのように使えます)
+
 ---
 
 ## 1. アプリ概要
