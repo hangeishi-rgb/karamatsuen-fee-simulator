@@ -164,7 +164,7 @@ function renderConditionSummary(input) {
 }
 
 function renderResult(result) {
-  const { careService, food, room, highCostCare, finalCareServiceCopay, finalTotal, welfareCoversFoodAndRoom, finalFoodAmount, finalRoomAmount } = result;
+  const { careService, food, room, highCostCare, finalCareServiceCopay, finalTotal, residentBurdenWaived, finalFoodAmount, finalRoomAmount } = result;
 
   renderConditionSummary(result.input);
   document.getElementById("result-finalTotal").textContent = formatYen(finalTotal);
@@ -176,7 +176,31 @@ function renderResult(result) {
   document.getElementById("result-careCopay").textContent = `${formatYen(careService.copay)}円`;
 
   const banner = document.getElementById("reduction-banner");
-  if (highCostCare) {
+  const hcAfterLabel = document.getElementById("result-hcAfterLabel");
+  const hcReductionLabel = document.getElementById("result-hcReductionLabel");
+
+  if (highCostCare && residentBurdenWaived) {
+    // 生活保護受給等: 介護サービス自己負担額は、生活保護の介護扶助と介護保険の高額介護サービス費の
+    // 組み合わせで全額公費負担されるため、本人負担は0円。内訳は施設の公費請求時の参考情報として表示する。
+    document.getElementById("result-hcBefore").textContent = `${formatYen(highCostCare.targetAmount)}円`;
+    document.getElementById("result-hcCategoryLabel").textContent = highCostCare.category.label;
+    document.getElementById("result-hcLimit").textContent = `${formatYen(highCostCare.limitAmount)}円`;
+    hcAfterLabel.textContent = "ご本人負担";
+    document.getElementById("result-hcAfter").textContent = `${formatYen(finalCareServiceCopay)}円`;
+    hcReductionLabel.textContent = "うち高額介護サービス費からの支給額(参考)";
+    document.getElementById("result-hcReduction").textContent = `${formatYen(highCostCare.reductionAmount)}円`;
+
+    banner.hidden = false;
+    banner.textContent = `生活保護受給等のため、介護サービス自己負担額(${formatYen(
+      highCostCare.targetAmount
+    )}円)は全額公費で負担され、ご本人負担は0円です(0円〜${formatYen(
+      highCostCare.limitAmount
+    )}円分は生活保護の介護扶助、${formatYen(highCostCare.limitAmount)}円を超える分(${formatYen(
+      highCostCare.reductionAmount
+    )}円)は介護保険の高額介護サービス費から、それぞれ公費で支給されます)。`;
+  } else if (highCostCare) {
+    hcAfterLabel.textContent = "適用後";
+    hcReductionLabel.textContent = "高額介護サービス費相当額(軽減額)";
     document.getElementById("result-hcBefore").textContent = `${formatYen(highCostCare.targetAmount)}円`;
     document.getElementById("result-hcCategoryLabel").textContent = highCostCare.category.label;
     document.getElementById("result-hcLimit").textContent = `${formatYen(highCostCare.limitAmount)}円`;
@@ -192,6 +216,8 @@ function renderResult(result) {
       banner.hidden = true;
     }
   } else {
+    hcAfterLabel.textContent = "適用後";
+    hcReductionLabel.textContent = "高額介護サービス費相当額(軽減額)";
     document.getElementById("result-hcBefore").textContent = `${formatYen(careService.copay)}円`;
     document.getElementById("result-hcCategoryLabel").textContent = "選択しない";
     document.getElementById("result-hcLimit").textContent = "—";
@@ -205,7 +231,7 @@ function renderResult(result) {
   document.getElementById("result-room").textContent = `${formatYen(finalRoomAmount)}円`;
 
   const welfareNote = document.getElementById("welfare-note");
-  if (welfareCoversFoodAndRoom) {
+  if (residentBurdenWaived) {
     welfareNote.hidden = false;
     welfareNote.textContent = `※生活保護の介護扶助により、食費・居住費のご本人負担は生じないものとして0円で表示しています(参考: 負担限度額第1段階相当額 ${formatYen(
       food.totalAmount + room.totalAmount

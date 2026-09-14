@@ -141,7 +141,8 @@ async function run() {
     assertEqual(result.finalTotal, 15329 + 12300, "calculateTotal unselected finalTotal unchanged");
   }
 
-  // calculateTotal: 生活保護受給等 選択時は食費・居住費の本人負担が0円になること
+  // calculateTotal: 生活保護受給等 選択時は介護サービス自己負担・食費・居住費すべて本人負担0円になること
+  // (介護扶助と高額介護サービス費の組み合わせで全額公費負担されるため)
   {
     const input = {
       careLevel: "3",
@@ -154,16 +155,37 @@ async function run() {
       otherFees: 0,
     };
     const result = calculateTotal(feeMaster, highCostCareMaster, input);
-    // careService.copay = 50895(料金表30日例) - 20400(stage1 private food+room) = 30495
-    assertEqual(result.careService.copay, 30495, "livelihoodProtection careService.copay");
-    // highCostCare limit=15000, target=30495 -> reduction適用でfinalCareServiceCopay=15000
-    assertEqual(result.finalCareServiceCopay, 15000, "livelihoodProtection finalCareServiceCopay capped at 15000");
-    assertEqual(result.welfareCoversFoodAndRoom, true, "livelihoodProtection welfareCoversFoodAndRoom flag");
+    // careService.copay = 50895(料金表30日例) - 20400(stage1 private food+room) = 30495 (公費内訳の参考値)
+    assertEqual(result.careService.copay, 30495, "livelihoodProtection careService.copay (reference)");
+    assertEqual(result.highCostCare.limitAmount, 15000, "livelihoodProtection highCostCare limit (reference)");
+    assertEqual(result.highCostCare.reductionAmount, 15495, "livelihoodProtection highCostCare reduction (reference)");
+    assertEqual(result.residentBurdenWaived, true, "livelihoodProtection residentBurdenWaived flag");
+    assertEqual(result.finalCareServiceCopay, 0, "livelihoodProtection finalCareServiceCopay is 0");
     assertEqual(result.finalFoodAmount, 0, "livelihoodProtection finalFoodAmount is 0");
     assertEqual(result.finalRoomAmount, 0, "livelihoodProtection finalRoomAmount is 0");
     assertEqual(result.food.totalAmount, 9000, "livelihoodProtection reference food.totalAmount unchanged");
     assertEqual(result.room.totalAmount, 11400, "livelihoodProtection reference room.totalAmount unchanged");
-    assertEqual(result.finalTotal, 15000, "livelihoodProtection finalTotal excludes food/room");
+    assertEqual(result.finalTotal, 0, "livelihoodProtection finalTotal is 0 (all publicly funded)");
+  }
+
+  // calculateTotal: 生活保護受給等でも、介護サービス自己負担が上限(15,000円)以下の場合は
+  // 全額が生活保護の介護扶助のみで賄われる(高額介護サービス費からの支給は発生しない)が、本人負担は同じく0円
+  {
+    const input = {
+      careLevel: "1",
+      copayRatio: 0.1,
+      roomType: "multi",
+      days: 10,
+      limitStage: "1",
+      highCostCareCategoryId: "livelihoodProtection",
+      otherServicesCopay: 0,
+      otherFees: 0,
+    };
+    const result = calculateTotal(feeMaster, highCostCareMaster, input);
+    assertEqual(result.highCostCare.reductionAmount, 0, "livelihoodProtection low-cost case: no high-cost-care portion");
+    assertEqual(result.residentBurdenWaived, true, "livelihoodProtection low-cost case: still waived");
+    assertEqual(result.finalCareServiceCopay, 0, "livelihoodProtection low-cost case: finalCareServiceCopay is 0");
+    assertEqual(result.finalTotal, 0, "livelihoodProtection low-cost case: finalTotal is 0");
   }
 
   // selectApplicableVersion: 料金改定対応の日付選択ロジック
