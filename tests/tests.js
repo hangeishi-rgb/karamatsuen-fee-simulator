@@ -112,15 +112,17 @@ async function run() {
       otherFees: 0,
     };
     const result = calculateTotal(feeMaster, highCostCareMaster, input);
-    // I = (732+70)*15 = 12030, II=130, unitBeforeTreatment=12160
-    // III = floor(12160*0.176) = floor(2140.16) = 2140
-    // totalUnit = 12160+2140 = 14300
-    // totalCost = floor(14300*10.72) = floor(153296) = 153296
-    // copay(0.1) = floor(15329.6) = 15329
-    assertEqual(result.careService.copay, 15329, "calculateTotal partial-month careService.copay");
+    // ※ feeMaster は 2026-08-01.json（月額加算70単位。科学的介護推進体制加算(Ⅰ)40と
+    //    個別機能訓練加算(Ⅱ)20は令和8年11月1日からの算定開始のため含まない）
+    // I = (732+70)*15 = 12030, II=70, unitBeforeTreatment=12100
+    // III = floor(12100*0.176) = floor(2129.6) = 2129
+    // totalUnit = 12100+2129 = 14229
+    // totalCost = floor(14229*10.72) = floor(152534.88) = 152534
+    // copay(0.1) = floor(15253.4) = 15253
+    assertEqual(result.careService.copay, 15253, "calculateTotal partial-month careService.copay");
     // food/room stage2 multi: room=430,food=390 -> (430+390)*15=12300
     assertEqual(result.food.totalAmount + result.room.totalAmount, 12300, "calculateTotal partial-month food+room");
-    assertEqual(result.finalTotal, 15329 + 12300, "calculateTotal partial-month finalTotal");
+    assertEqual(result.finalTotal, 15253 + 12300, "calculateTotal partial-month finalTotal");
   }
 
   // calculateTotal: 高額介護サービス費の区分が未選択(null)の場合、軽減額を計算せずそのまま合算すること
@@ -138,7 +140,7 @@ async function run() {
     const result = calculateTotal(feeMaster, highCostCareMaster, input);
     assertEqual(result.highCostCare, null, "calculateTotal unselected highCostCare is null");
     assertEqual(result.finalCareServiceCopay, result.careService.copay, "calculateTotal unselected finalCareServiceCopay unchanged");
-    assertEqual(result.finalTotal, 15329 + 12300, "calculateTotal unselected finalTotal unchanged");
+    assertEqual(result.finalTotal, 15253 + 12300, "calculateTotal unselected finalTotal unchanged");
   }
 
   // calculateTotal: 生活保護受給等 選択時は介護サービス自己負担・食費・居住費すべて本人負担0円になること
@@ -155,14 +157,40 @@ async function run() {
       otherFees: 0,
     };
     const result = calculateTotal(feeMaster, highCostCareMaster, input);
-    // careService.copay = 50895(料金表30日例) - 20400(stage1 private food+room) = 30495 (公費内訳の参考値)
-    assertEqual(result.careService.copay, 30495, "livelihoodProtection careService.copay (reference)");
+    // careService.copay = 50819(暫定版料金表30日例) - 20400(stage1 private food+room) = 30419 (公費内訳の参考値)
+    // ※令和8年11月1日から（月額加算130単位）は 50895 - 20400 = 30495 になる
+    assertEqual(result.careService.copay, 30419, "livelihoodProtection careService.copay (reference)");
     assertEqual(result.highCostCare.limitAmount, 15000, "livelihoodProtection highCostCare limit (reference)");
-    assertEqual(result.highCostCare.reductionAmount, 15495, "livelihoodProtection highCostCare reduction (reference)");
+    assertEqual(result.highCostCare.reductionAmount, 15419, "livelihoodProtection highCostCare reduction (reference)");
     assertEqual(result.residentBurdenWaived, true, "livelihoodProtection residentBurdenWaived flag");
     assertEqual(result.finalCareServiceCopay, 0, "livelihoodProtection finalCareServiceCopay is 0");
     assertEqual(result.finalFoodAmount, 0, "livelihoodProtection finalFoodAmount is 0");
     assertEqual(result.finalRoomAmount, 0, "livelihoodProtection finalRoomAmount is 0");
+
+    // 生活保護受給等で、自己負担相当額が高額介護サービス費の上限額(15,000円)を下回る場合
+    // (月途中入退所・短期利用など)。介護扶助からの支給額は上限額ではなく自己負担相当額そのものになる。
+    {
+      const shortInput = {
+        careLevel: "1",
+        copayRatio: 0.1,
+        roomType: "private",
+        days: 5,
+        limitStage: "1",
+        highCostCareCategoryId: "livelihoodProtection",
+        otherServicesCopay: 0,
+        otherFees: 0,
+      };
+      const short = calculateTotal(feeMaster, highCostCareMaster, shortInput);
+      // I = (589+70)*5 = 3295, II=70, before=3365
+      // III = floor(3365*0.176) = floor(592.24) = 592 -> totalUnit=3957
+      // totalCost = floor(3957*10.72) = floor(42419.04) = 42419
+      // copay(0.1) = floor(4241.9) = 4241
+      assertEqual(short.careService.copay, 4241, "livelihoodProtection(short) careService.copay");
+      assertEqual(short.highCostCare.reductionAmount, 0, "livelihoodProtection(short) 高額介護サービス費は0円");
+      assertEqual(short.highCostCare.amountAfterLimit, 4241, "livelihoodProtection(short) 介護扶助は自己負担相当額と同額");
+      assertEqual(short.finalCareServiceCopay, 0, "livelihoodProtection(short) 本人負担は0円");
+      assertEqual(short.finalTotal, 0, "livelihoodProtection(short) 合計も0円");
+    }
     assertEqual(result.food.totalAmount, 9000, "livelihoodProtection reference food.totalAmount unchanged");
     assertEqual(result.room.totalAmount, 11400, "livelihoodProtection reference room.totalAmount unchanged");
     assertEqual(result.finalTotal, 0, "livelihoodProtection finalTotal is 0 (all publicly funded)");

@@ -191,13 +191,25 @@ function renderResult(result) {
     document.getElementById("result-hcReduction").textContent = `${formatYen(highCostCare.reductionAmount)}円`;
 
     banner.hidden = false;
+    // 給付の優先順位は「(1)介護保険(高額介護サービス費) → (2)生活保護(介護扶助)」(他法優先の原則)。
+    // 高額介護サービス費が上限超過分を先に給付し、残る上限額までの部分を介護扶助が補う。
+    // 介護扶助分は上限額そのものではなく amountAfterLimit(= min(自己負担額, 上限額)) を用いる。
+    // 自己負担額が上限額を下回る月途中入退所・短期利用のケースで、金額が誤って大きく表示されるのを防ぐ。
+    const hcBenefit = highCostCare.reductionAmount;      // 高額介護サービス費からの支給額
+    const welfareAid = highCostCare.amountAfterLimit;    // 介護扶助からの支給額
+    const breakdown =
+      hcBenefit > 0
+        ? `${formatYen(highCostCare.limitAmount)}円を超える分【${formatYen(
+            hcBenefit
+          )}円】は介護保険の高額介護サービス費から支給され、残りの${formatYen(
+            welfareAid
+          )}円は生活保護の介護扶助から支給されます。`
+        : `自己負担相当額が高額介護サービス費の上限額(${formatYen(
+            highCostCare.limitAmount
+          )}円)以下のため、全額【${formatYen(welfareAid)}円】が生活保護の介護扶助から支給されます。`;
     banner.textContent = `生活保護受給等のため、介護サービス自己負担額(${formatYen(
       highCostCare.targetAmount
-    )}円)は全額公費で負担され、ご本人負担は0円です(0円〜${formatYen(
-      highCostCare.limitAmount
-    )}円分は生活保護の介護扶助、${formatYen(highCostCare.limitAmount)}円を超える分(${formatYen(
-      highCostCare.reductionAmount
-    )}円)は介護保険の高額介護サービス費から、それぞれ公費で支給されます)。`;
+    )}円)は全額公費で負担され、ご本人負担は0円です。(${breakdown})`;
   } else if (highCostCare) {
     hcAfterLabel.textContent = "適用後";
     hcReductionLabel.textContent = "高額介護サービス費相当額(軽減額)";
@@ -233,9 +245,15 @@ function renderResult(result) {
   const welfareNote = document.getElementById("welfare-note");
   if (residentBurdenWaived) {
     welfareNote.hidden = false;
-    welfareNote.textContent = `※生活保護の介護扶助により、食費・居住費のご本人負担は生じないものとして0円で表示しています(参考: 負担限度額第1段階相当額 ${formatYen(
-      food.totalAmount + room.totalAmount
-    )}円は介護扶助等で賄われます)。`;
+    // 給付の優先順位は「(1)介護保険(補足給付=特定入所者介護サービス費) → (2)生活保護(介護扶助)」。
+    // 基準費用額との差額は補足給付が負担し、負担限度額認定(第1段階)適用後の自己負担分を介護扶助が全額支給する。
+    const stage1Burden = food.totalAmount + room.totalAmount;
+    const usedDays = result.input.days;
+    const perMonth =
+      usedDays === 30
+        ? `約${formatYen(stage1Burden)}円／月`
+        : `${formatYen(stage1Burden)}円(${usedDays}日分)`;
+    welfareNote.textContent = `※生活保護の介護扶助により、食費・居住費のご本人負担は生じないものとして0円で表示しています。(介護保険の負担限度額認定【第1段階】が適用され、その自己負担分［${perMonth}］についても全額介護扶助から支給されます。)`;
   } else {
     welfareNote.hidden = true;
   }
