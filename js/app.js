@@ -22,6 +22,15 @@ async function loadVersions(path) {
   return json.versions;
 }
 
+// フッターに表示するアプリの版。service-worker.js の CACHE_NAME と揃えること。
+const APP_VERSION = "v9";
+
+// "2026-08-01" を "令和8年8月1日" に変換する(令和 = 西暦 - 2018)
+function toWareki(ymd) {
+  const [y, m, d] = ymd.split("-").map(Number);
+  return `令和${y - 2018}年${m}月${d}日`;
+}
+
 async function loadData() {
   const today = formatDateYmd();
 
@@ -39,6 +48,13 @@ async function loadData() {
   ]);
   feeMaster = await feeRes.json();
   highCostCareMaster = await hcRes.json();
+
+  // 実際に採用された版をフッターに表示する。
+  // どの日付の料金表で計算しているかが画面と印刷物に残り、更新されたかの確認にも使える。
+  const feeVersionEl = document.getElementById("footer-fee-version");
+  if (feeVersionEl) feeVersionEl.textContent = `${toWareki(feeVersion)}〜`;
+  const appVersionEl = document.getElementById("footer-app-version");
+  if (appVersionEl) appVersionEl.textContent = APP_VERSION;
 }
 
 function formatYen(value) {
