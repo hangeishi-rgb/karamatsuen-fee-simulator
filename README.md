@@ -19,27 +19,27 @@
 
 ## 2. 起動方法・開発環境
 
-Node.jsは不要です。ローカルの静的Webサーバーで `docs/index.html` を配信するだけで動作します。
+Node.jsは不要です。ローカルの静的Webサーバーで `料金シミュレーター/index.html` を配信するだけで動作します。
 
-fetch() で `docs/data/*.json` を読み込むため、`file://` で直接開くとブラウザのセキュリティ制限で読み込みに失敗する場合があります。必ず簡易HTTPサーバー経由で開いてください。
+fetch() で `料金シミュレーター/data/*.json` を読み込むため、`file://` で直接開くとブラウザのセキュリティ制限で読み込みに失敗する場合があります。必ず簡易HTTPサーバー経由で開いてください。
 
-一番手軽なのは「[ローカル確認用/起動.bat](ローカル確認用/起動.bat)」をダブルクリックする方法です(内部で `docs/` フォルダをWebルートとして配信します)。詳細は「7. テスト方法」を参照してください。
+一番手軽なのは「[ローカル確認用/起動.bat](ローカル確認用/起動.bat)」をダブルクリックする方法です(内部で `料金シミュレーター/` フォルダをWebルートとして配信します)。詳細は「7. テスト方法」を参照してください。
 
 その他の方法で確認する場合(Windows PowerShellの例):
 
 ```powershell
-# docs フォルダに移動して実行(Pythonが使える場合)
-cd docs
+# 料金シミュレーター フォルダに移動して実行(Pythonが使える場合)
+cd 料金シミュレーター
 python -m http.server 8080
 
 # その後ブラウザで http://localhost:8080/ を開く
 ```
 
-Pythonが無い場合は、VSCodeの「Live Server」拡張機能(`docs/index.html` を右クリックして起動)や、他の任意の静的サーバーでも構いません。
+Pythonが無い場合は、VSCodeの「Live Server」拡張機能(`料金シミュレーター/index.html` を右クリックして起動)や、他の任意の静的サーバーでも構いません。
 
 ## 3. 本番公開・iPhoneへの追加方法
 
-このリポジトリはGitHub Pagesの公開元を「`/docs`フォルダ」に設定しています。`main`ブランチに`docs/`配下の変更をpushすれば、公開URLに自動反映されます。
+このリポジトリは、GitHub Actionsのワークフロー([.github/workflows/pages.yml](.github/workflows/pages.yml))で`料金シミュレーター/`フォルダの中身だけをGitHub Pagesに公開しています(GitHub Pagesの標準設定では「ルート直下」か「docs/」しか公開元に選べないため、任意のフォルダ名を使うためにActionsを使う構成にしています)。`main`ブランチの`料金シミュレーター/`配下に変更をpushすると、このワークフローが自動的に走り、公開URLに反映されます(GitHubの「Actions」タブでビルド状況を確認できます)。
 
 1. iPhoneのSafariで公開URLを開きます。
 2. 共有ボタン(□に↑の付いたアイコン)をタップし、「ホーム画面に追加」を選択します。
@@ -49,10 +49,10 @@ Pythonが無い場合は、VSCodeの「Live Server」拡張機能(`docs/index.ht
 
 ## 4. フォルダ構成・料金マスタの場所
 
-このフォルダは、公開中の料金シミュレーター(`docs/`)に加えて、特養・ショートステイの料金表Excel原本の管理・改定作業も行う場所です。
+このフォルダは、公開中の料金シミュレーター(`料金シミュレーター/`)に加えて、特養・ショートステイの料金表Excel原本の管理・改定作業も行う場所です。
 
 ```
-docs/                                  ← GitHub Pagesの公開元(このフォルダの中身だけが公開される)
+料金シミュレーター/                    ← GitHub Pagesの公開元(このフォルダの中身だけが公開される。.github/workflows/pages.yml が発行を担当)
   index.html                            画面本体
   manifest.json                         PWAマニフェスト
   service-worker.js                     オフラインキャッシュ
@@ -76,27 +76,27 @@ docs/                                  ← GitHub Pagesの公開元(このフォ
 資料/からまつ苑料金シミュレーターQR.png    アプリ本体からは参照されない、共有用QR画像
 ```
 
-`docs/`配下は、GitHub Pagesでの公開に必要な構成(相対パス・Service Workerのスコープ)を保つため、内部のファイル配置(`index.html`・`manifest.json`・`service-worker.js`・`css/`・`js/`・`data/`・`icons/`の位置関係)を変えないでください。
+`料金シミュレーター/`配下は、GitHub Pagesでの公開に必要な構成(相対パス・Service Workerのスコープ)を保つため、内部のファイル配置(`index.html`・`manifest.json`・`service-worker.js`・`css/`・`js/`・`data/`・`icons/`の位置関係)を変えないでください。フォルダ自体の名前を変える場合は、`.github/workflows/pages.yml`の`paths`と`path`、`ローカル確認用/start-server.ps1`の`$RootDir`も合わせて変更する必要があります。
 
 ### 料金改定・制度改定時の修正方法
 
 本アプリは、料金改定のたびにプログラムのコードを直す必要がないように設計しています。新しい日付のJSONを追加するだけで、アプリが自動的に「今日時点で有効な最新の料金」を選んで使うようになります。
 
 - **からまつ苑の料金改定**(基本単位・加算単位・処遇改善加算率・地域区分単価・食費居住費が変わった場合):
-  1. `docs/data/karamatsu/` に新しい日付のJSON(例: `2027-04-01.json`)を追加する(既存ファイルは変更せず残す。過去分の検証や切り戻しがしやすくなるため)。
-  2. `docs/data/karamatsu/versions.json` の `versions` 配列に、その新しい日付("2027-04-01")を追加する。
-  3. これだけで、`docs/js/app.js` や計算ロジックのコードは一切変更せずに反映されます(`docs/js/calculation/versionSelect.js` が、実行時点の日付に対して有効な最新バージョンを自動選択します)。
-- **大阪市 高額介護サービス費の上限額改定**: 同様に `docs/data/osaka/high-cost-care/` に新しい日付のJSONを追加し、`docs/data/osaka/high-cost-care/versions.json` にその日付を追加してください。
-- 料金・単価を計算ロジック(`docs/js/calculation/*.js`)に直接書き込むことは絶対にしないでください。すべてJSONマスタ側で管理する設計です。
-- ファイルを追加・変更したら、`docs/service-worker.js` の `CACHE_NAME` のバージョン文字列を上げてください(上げないと、既にホーム画面に追加した利用者の端末に更新が反映されないことがあります)。新しいJSONファイルは `APP_SHELL_FILES` にも追加しておくと、オフライン時の初回読み込みにも対応できます。
-- 変更後は `docs/tests/test.html` で全件パスすることを確認してから、`git add` → `git commit` → `git push` でGitHub Pagesに反映してください。
+  1. `料金シミュレーター/data/karamatsu/` に新しい日付のJSON(例: `2027-04-01.json`)を追加する(既存ファイルは変更せず残す。過去分の検証や切り戻しがしやすくなるため)。
+  2. `料金シミュレーター/data/karamatsu/versions.json` の `versions` 配列に、その新しい日付("2027-04-01")を追加する。
+  3. これだけで、`料金シミュレーター/js/app.js` や計算ロジックのコードは一切変更せずに反映されます(`料金シミュレーター/js/calculation/versionSelect.js` が、実行時点の日付に対して有効な最新バージョンを自動選択します)。
+- **大阪市 高額介護サービス費の上限額改定**: 同様に `料金シミュレーター/data/osaka/high-cost-care/` に新しい日付のJSONを追加し、`料金シミュレーター/data/osaka/high-cost-care/versions.json` にその日付を追加してください。
+- 料金・単価を計算ロジック(`料金シミュレーター/js/calculation/*.js`)に直接書き込むことは絶対にしないでください。すべてJSONマスタ側で管理する設計です。
+- ファイルを追加・変更したら、`料金シミュレーター/service-worker.js` の `CACHE_NAME` のバージョン文字列を上げてください(上げないと、既にホーム画面に追加した利用者の端末に更新が反映されないことがあります)。新しいJSONファイルは `APP_SHELL_FILES` にも追加しておくと、オフライン時の初回読み込みにも対応できます。
+- 変更後は `料金シミュレーター/tests/test.html` で全件パスすることを確認してから、`git add` → `git commit` → `git push` でGitHub Pagesに反映してください(pushをトリガーに`.github/workflows/pages.yml`が自動で公開します)。
 
 #### 現在登録されている料金マスタの版
 
 | 適用期間 | ファイル | 月額加算 | 備考 |
 |---|---|---|---|
-| 令和8年8月1日〜10月31日 | `docs/data/karamatsu/2026-08-01.json` | 70単位 | 科学的介護推進体制加算(Ⅰ)40単位・個別機能訓練加算(Ⅱ)20単位を含まない |
-| 令和8年11月1日〜 | `docs/data/karamatsu/2026-11-01.json` | 130単位 | 上記2加算の算定開始 |
+| 令和8年8月1日〜10月31日 | `料金シミュレーター/data/karamatsu/2026-08-01.json` | 70単位 | 科学的介護推進体制加算(Ⅰ)40単位・個別機能訓練加算(Ⅱ)20単位を含まない |
+| 令和8年11月1日〜 | `料金シミュレーター/data/karamatsu/2026-11-01.json` | 130単位 | 上記2加算の算定開始 |
 
 対応する料金表(Excel。`.gitignore` により本リポジトリには含みません)は、`デスクトップ\AI_料金表\料金表(Excel)\特養\` 配下の
 「特養：料金表（令和8年8月1日から令和8年10月31日まで）_暫定版.xlsx」と
