@@ -19,75 +19,90 @@
 
 ## 2. 起動方法・開発環境
 
-Node.jsは不要です。ローカルの静的Webサーバーで `index.html` を配信するだけで動作します。
+Node.jsは不要です。ローカルの静的Webサーバーで `docs/index.html` を配信するだけで動作します。
 
-fetch() で `data/*.json` を読み込むため、`file://` で直接開くとブラウザのセキュリティ制限で読み込みに失敗する場合があります。必ず簡易HTTPサーバー経由で開いてください。
+fetch() で `docs/data/*.json` を読み込むため、`file://` で直接開くとブラウザのセキュリティ制限で読み込みに失敗する場合があります。必ず簡易HTTPサーバー経由で開いてください。
 
-例(Windows PowerShellで手軽に確認する場合):
+一番手軽なのは「[ローカル確認用/起動.bat](ローカル確認用/起動.bat)」をダブルクリックする方法です(内部で `docs/` フォルダをWebルートとして配信します)。詳細は「7. テスト方法」を参照してください。
+
+その他の方法で確認する場合(Windows PowerShellの例):
 
 ```powershell
-# プロジェクトフォルダで実行(Pythonが使える場合)
+# docs フォルダに移動して実行(Pythonが使える場合)
+cd docs
 python -m http.server 8080
 
 # その後ブラウザで http://localhost:8080/ を開く
 ```
 
-Pythonが無い場合は、VSCodeの「Live Server」拡張機能や、他の任意の静的サーバーでも構いません。
+Pythonが無い場合は、VSCodeの「Live Server」拡張機能(`docs/index.html` を右クリックして起動)や、他の任意の静的サーバーでも構いません。
 
 ## 3. 本番公開・iPhoneへの追加方法
 
-1. `index.html` を含むこのフォルダ一式を、HTTPS対応の任意のWebホスティング(GitHub Pages、Netlifyなど)にアップロードします。
-2. iPhoneのSafariで公開URLを開きます。
-3. 共有ボタン(□に↑の付いたアイコン)をタップし、「ホーム画面に追加」を選択します。
-4. ホーム画面に「からまつ苑料金計算」というアイコンが追加され、アプリのように起動できます(standalone表示・オフライン計算対応)。
+このリポジトリはGitHub Pagesの公開元を「`/docs`フォルダ」に設定しています。`main`ブランチに`docs/`配下の変更をpushすれば、公開URLに自動反映されます。
+
+1. iPhoneのSafariで公開URLを開きます。
+2. 共有ボタン(□に↑の付いたアイコン)をタップし、「ホーム画面に追加」を選択します。
+3. ホーム画面に「からまつ苑料金計算」というアイコンが追加され、アプリのように起動できます(standalone表示・オフライン計算対応)。
 
 ※ PWAのService Worker・ホーム画面追加はHTTPS環境(またはlocalhost)でのみ正しく動作します。
 
 ## 4. フォルダ構成・料金マスタの場所
 
+このフォルダは、公開中の料金シミュレーター(`docs/`)に加えて、特養・ショートステイの料金表Excel原本の管理・改定作業も行う場所です。
+
 ```
-index.html                            画面本体
-manifest.json                         PWAマニフェスト
-service-worker.js                     オフラインキャッシュ
-css/style.css                         スタイル
-js/app.js                              画面制御(状態管理・DOM操作)
-js/calculation/careService.js         介護サービス費の計算
-js/calculation/food.js                食費の計算
-js/calculation/room.js                居住費の計算
-js/calculation/highCostCare.js        高額介護サービス費の計算
-js/calculation/total.js               全体を合算し calculationResult を作る
-js/calculation/versionSelect.js       今日時点で有効な料金マスタのバージョンを自動選択
-data/karamatsu/versions.json          からまつ苑 料金マスタの適用日一覧(★改定時はここに追加)
-data/karamatsu/2026-08-01.json        からまつ苑 料金マスタ本体(★改定時は新しい日付のファイルを追加)
-data/osaka/high-cost-care/versions.json    高額介護サービス費マスタの適用日一覧(★改定時はここに追加)
-data/osaka/high-cost-care/2026-08-01.json  大阪市 高額介護サービス費マスタ本体(★改定時は新しい日付のファイルを追加)
-tests/tests.js, tests/test.html       計算ロジックのブラウザ内テスト
-icons/                                 PWAアイコン
+docs/                                  ← GitHub Pagesの公開元(このフォルダの中身だけが公開される)
+  index.html                            画面本体
+  manifest.json                         PWAマニフェスト
+  service-worker.js                     オフラインキャッシュ
+  css/style.css                         スタイル
+  js/app.js                              画面制御(状態管理・DOM操作)
+  js/calculation/careService.js         介護サービス費の計算
+  js/calculation/food.js                食費の計算
+  js/calculation/room.js                居住費の計算
+  js/calculation/highCostCare.js        高額介護サービス費の計算
+  js/calculation/total.js               全体を合算し calculationResult を作る
+  js/calculation/versionSelect.js       今日時点で有効な料金マスタのバージョンを自動選択
+  data/karamatsu/versions.json          からまつ苑 料金マスタの適用日一覧(★改定時はここに追加)
+  data/karamatsu/2026-08-01.json        からまつ苑 料金マスタ本体(★改定時は新しい日付のファイルを追加)
+  data/osaka/high-cost-care/versions.json    高額介護サービス費マスタの適用日一覧(★改定時はここに追加)
+  data/osaka/high-cost-care/2026-08-01.json  大阪市 高額介護サービス費マスタ本体(★改定時は新しい日付のファイルを追加)
+  tests/tests.js, tests/test.html       計算ロジックのブラウザ内テスト
+  icons/                                 PWAアイコン
+料金表(Excel)/特養/                    特養料金表Excel原本(.gitignoreによりリポジトリ非公開。改定作業もここで行う)
+料金表(Excel)/ショート/                ショートステイ料金表Excel原本(.gitignoreによりリポジトリ非公開。改定作業もここで行う。現時点でシミュレーターには未反映)
+ローカル確認用/起動.bat, start-server.ps1   ローカル動作確認用サーバー(下記「起動方法」参照)
+資料/からまつ苑料金シミュレーターQR.png    アプリ本体からは参照されない、共有用QR画像
 ```
+
+`docs/`配下は、GitHub Pagesでの公開に必要な構成(相対パス・Service Workerのスコープ)を保つため、内部のファイル配置(`index.html`・`manifest.json`・`service-worker.js`・`css/`・`js/`・`data/`・`icons/`の位置関係)を変えないでください。
 
 ### 料金改定・制度改定時の修正方法
 
 本アプリは、料金改定のたびにプログラムのコードを直す必要がないように設計しています。新しい日付のJSONを追加するだけで、アプリが自動的に「今日時点で有効な最新の料金」を選んで使うようになります。
 
 - **からまつ苑の料金改定**(基本単位・加算単位・処遇改善加算率・地域区分単価・食費居住費が変わった場合):
-  1. `data/karamatsu/` に新しい日付のJSON(例: `2027-04-01.json`)を追加する(既存ファイルは変更せず残す。過去分の検証や切り戻しがしやすくなるため)。
-  2. `data/karamatsu/versions.json` の `versions` 配列に、その新しい日付("2027-04-01")を追加する。
-  3. これだけで、`js/app.js` や計算ロジックのコードは一切変更せずに反映されます(`js/calculation/versionSelect.js` が、実行時点の日付に対して有効な最新バージョンを自動選択します)。
-- **大阪市 高額介護サービス費の上限額改定**: 同様に `data/osaka/high-cost-care/` に新しい日付のJSONを追加し、`data/osaka/high-cost-care/versions.json` にその日付を追加してください。
-- 料金・単価を計算ロジック(`js/calculation/*.js`)に直接書き込むことは絶対にしないでください。すべてJSONマスタ側で管理する設計です。
-- ファイルを追加・変更したら、`service-worker.js` の `CACHE_NAME` のバージョン文字列を上げてください(上げないと、既にホーム画面に追加した利用者の端末に更新が反映されないことがあります)。新しいJSONファイルは `APP_SHELL_FILES` にも追加しておくと、オフライン時の初回読み込みにも対応できます。
-- 変更後は `tests/test.html` で全件パスすることを確認してから、`git add` → `git commit` → `git push` でGitHub Pagesに反映してください。
+  1. `docs/data/karamatsu/` に新しい日付のJSON(例: `2027-04-01.json`)を追加する(既存ファイルは変更せず残す。過去分の検証や切り戻しがしやすくなるため)。
+  2. `docs/data/karamatsu/versions.json` の `versions` 配列に、その新しい日付("2027-04-01")を追加する。
+  3. これだけで、`docs/js/app.js` や計算ロジックのコードは一切変更せずに反映されます(`docs/js/calculation/versionSelect.js` が、実行時点の日付に対して有効な最新バージョンを自動選択します)。
+- **大阪市 高額介護サービス費の上限額改定**: 同様に `docs/data/osaka/high-cost-care/` に新しい日付のJSONを追加し、`docs/data/osaka/high-cost-care/versions.json` にその日付を追加してください。
+- 料金・単価を計算ロジック(`docs/js/calculation/*.js`)に直接書き込むことは絶対にしないでください。すべてJSONマスタ側で管理する設計です。
+- ファイルを追加・変更したら、`docs/service-worker.js` の `CACHE_NAME` のバージョン文字列を上げてください(上げないと、既にホーム画面に追加した利用者の端末に更新が反映されないことがあります)。新しいJSONファイルは `APP_SHELL_FILES` にも追加しておくと、オフライン時の初回読み込みにも対応できます。
+- 変更後は `docs/tests/test.html` で全件パスすることを確認してから、`git add` → `git commit` → `git push` でGitHub Pagesに反映してください。
 
 #### 現在登録されている料金マスタの版
 
 | 適用期間 | ファイル | 月額加算 | 備考 |
 |---|---|---|---|
-| 令和8年8月1日〜10月31日 | `data/karamatsu/2026-08-01.json` | 70単位 | 科学的介護推進体制加算(Ⅰ)40単位・個別機能訓練加算(Ⅱ)20単位を含まない |
-| 令和8年11月1日〜 | `data/karamatsu/2026-11-01.json` | 130単位 | 上記2加算の算定開始 |
+| 令和8年8月1日〜10月31日 | `docs/data/karamatsu/2026-08-01.json` | 70単位 | 科学的介護推進体制加算(Ⅰ)40単位・個別機能訓練加算(Ⅱ)20単位を含まない |
+| 令和8年11月1日〜 | `docs/data/karamatsu/2026-11-01.json` | 130単位 | 上記2加算の算定開始 |
 
-対応する料金表(Excel。`.gitignore` により本リポジトリには含みません)は、`デスクトップ\AI_料金表` 配下の
+対応する料金表(Excel。`.gitignore` により本リポジトリには含みません)は、`デスクトップ\AI_料金表\料金表(Excel)\特養\` 配下の
 「特養：料金表（令和8年8月1日から令和8年10月31日まで）_暫定版.xlsx」と
 「特養：料金表（令和8年11月1日から）.xlsx」です。
+
+なお `料金表(Excel)\ショート\` にショートステイの料金表(「SS料金表_R8.8～.xlsx」)も参考資料として格納していますが、本シミュレーターは特養のみが対象で、ショートステイの計算には未対応です。
 
 ## 5. 計算式(からまつ苑公式料金表に明記された算定方法)
 
@@ -130,7 +145,7 @@ icons/                                 PWAアイコン
 
 Node.js不使用のため、ブラウザ上で動作する簡易テストランナーを用意しています。
 
-1. 「起動.bat」をダブルクリックするか、任意のローカルサーバーでこのフォルダを配信します(上記「起動方法」参照)。
+1. 「ローカル確認用/起動.bat」をダブルクリックするか、任意のローカルサーバーでこのフォルダを配信します(上記「起動方法」参照)。
 2. ブラウザで `http://localhost:8791/tests/test.html` を開きます。
 3. `TOTAL: 104  PASS: 104  FAIL: 0` のように、全件パスすることを確認してください。
 

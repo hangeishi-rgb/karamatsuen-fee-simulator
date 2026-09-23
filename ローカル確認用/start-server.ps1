@@ -3,7 +3,7 @@
 # このスクリプトは「起動.bat」から呼び出されます。手動実行も可能です。
 
 $Port = 8791
-$RootDir = $PSScriptRoot
+$RootDir = Join-Path (Split-Path $PSScriptRoot -Parent) "docs"
 
 Add-Type -AssemblyName System.Net.HttpListener -ErrorAction SilentlyContinue
 
